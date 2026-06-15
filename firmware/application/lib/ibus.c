@@ -769,9 +769,10 @@ static void IBusHandleRADMessage(IBus_t *ibus, uint8_t *pkt)
             }
             EventTriggerCallback(IBUS_EVENT_CD_STATUS_REQUEST, pkt);
         }
-    } else if (pkt[IBUS_PKT_DST] == IBUS_DEVICE_DIA &&
-               pkt[IBUS_PKT_LEN] > 8 &&
-               pkt[IBUS_PKT_CMD] == IBUS_CMD_DIA_DIAG_RESPONSE
+    } else if (
+        pkt[IBUS_PKT_DST] == IBUS_DEVICE_DIA &&
+        pkt[IBUS_PKT_LEN] > 8 &&
+        pkt[IBUS_PKT_CMD] == IBUS_CMD_DIA_DIAG_RESPONSE
     ) {
         LogRaw(
             "\r\nIBus: RAD P/N: %d%d%d%d%d%d%d HW: %02d SW: %d%d Build: %d%d/%d%d\r\n",
@@ -2824,12 +2825,14 @@ void IBusCommandIRISDisplayWrite(IBus_t *ibus, char *text)
 /**
  * IBusCommandLMActivateBulbs()
  *     Description:
- *        Light module diagnostics: Activate bulbs
+ *        Light module diagnostics: Activate bulbs via STEUERN diagnostic job.
+ *        Handles blinkers, parking/side marker lights, and welcome/follow-me
+ *        home lighting (high beams + tail lamps).
  *     Params:
  *         IBus_t *ibus - The pointer to the IBus_t object
  *         uint8_t blinkerSide - left or right blinker
  *         uint8_t parkingLights - Activate the parking lights
- *         uint8_t homeLights - Activate Welcome / Follow-Me Home lights
+ *         uint8_t homeLights - IBUS_LM_HOME_OFF / WELCOME / FOLLOW
  *     Returns:
  *         void
  */
