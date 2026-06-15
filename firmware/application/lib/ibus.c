@@ -519,6 +519,26 @@ static void IBusHandleIKEMessage(IBus_t *ibus, uint8_t *pkt)
 }
 
 /**
+ * IBusHandleIRISMessage()
+ *     Description:
+ *         Handle any messages received from the IRIS (Integrated Radio Information System)
+ *     Params:
+ *         uint8_t *pkt - The frame received on the IBus
+ *     Returns:
+ *         None
+ */
+static void IBusHandleIRISMessage(IBus_t *ibus, uint8_t *pkt)
+{
+    if (pkt[IBUS_PKT_CMD] == IBUS_CMD_MOD_STATUS_RESP) {
+        IBusHandleModuleStatus(ibus, IBUS_DEVICE_IRIS);
+    }
+    // Any IRIS Traffic should trigger the module status update
+    if (ibus->moduleStatus.IRIS == 0) {
+        IBusHandleModuleStatus(ibus, IBUS_DEVICE_IRIS);
+    }
+}
+
+/**
  * IBusHandleLCMMessage()
  *     Description:
  *         Handle any messages received from the LCM (Lighting Control Module)
@@ -836,6 +856,10 @@ static void IBusHandleRADMessage(IBus_t *ibus, uint8_t *pkt)
         ) {
             EventTriggerCallback(IBUS_EVENT_RAD_WRITE_DISPLAY, pkt);
         }
+    } else if (pkt[IBUS_PKT_DST] == IBUS_DEVICE_IRIS) {
+        if (pkt[IBUS_PKT_CMD] == IBUS_CMD_RAD_UPDATE_MAIN_AREA) {
+            EventTriggerCallback(IBUS_EVENT_RAD_WRITE_DISPLAY, pkt);
+        }
     } else if (pkt[IBUS_PKT_DST] == IBUS_DEVICE_LOC) {
         if (pkt[IBUS_PKT_CMD] == 0x3B) {
             EventTriggerCallback(IBUS_EVENT_CD_CLEAR_DISPLAY, pkt);
@@ -1033,6 +1057,9 @@ void IBusProcess(IBus_t *ibus)
                     }
                     if (srcSystem == IBUS_DEVICE_IKE) {
                         IBusHandleIKEMessage(ibus, pkt);
+                    }
+                    if (srcSystem == IBUS_DEVICE_IRIS) {
+                        IBusHandleIRISMessage(ibus, pkt);
                     }
                     if (srcSystem == IBUS_DEVICE_GT) {
                         IBusHandleGTMessage(ibus, pkt);
@@ -2810,7 +2837,7 @@ void IBusCommandIRISDisplayWrite(IBus_t *ibus, char *text)
     memset(&displayText, 0, frameSize);
     displayText[0] = IBUS_CMD_RAD_UPDATE_MAIN_AREA;
     displayText[1] = 0x00;
-    displayText[2] = 0x30;
+    displayText[2] = 0x32;
     memcpy(displayText + 3, text, len);
     IBusSendCommand(
         ibus,
