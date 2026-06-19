@@ -1004,19 +1004,15 @@ void IBusProcess(IBus_t *ibus)
             uint8_t msgLength = ibus->rxBuffer[1] + 2;
             // Make sure we do not read more than the maximum packet length
             if (msgLength > IBUS_MAX_MSG_LENGTH) {
-                long long unsigned int ts = (long long unsigned int) TimerGetMillis();
-                LogRawDebug(
+                LogDebugByteArray(
                     LOG_SOURCE_IBUS,
-                    "[%llu] ERROR: IBus: RX Invalid Length [%d - %02X]: ",
-                    ts,
+                    ibus->rxBuffer,
+                    ibus->rxBufferIdx,
+                    NULL,
+                    "ERROR: IBus: RX Invalid Length [%d - %02X]",
                     msgLength,
                     ibus->rxBuffer[1]
                 );
-                uint8_t idx;
-                for (idx = 0; idx < ibus->rxBufferIdx; idx++) {
-                    LogRawDebug(LOG_SOURCE_IBUS, "%02X ", ibus->rxBuffer[idx]);
-                }
-                LogRawDebug(LOG_SOURCE_IBUS, "\r\n");
                 ibus->rxBufferIdx = 0;
                 memset(ibus->rxBuffer, 0, IBUS_RX_BUFFER_SIZE);
                 CharQueueReset(&ibus->uart.rxQueue);
@@ -1025,14 +1021,12 @@ void IBusProcess(IBus_t *ibus)
                 uint8_t idx;
                 uint8_t pkt[msgLength];
                 memset(pkt, 0, msgLength);
-                long long unsigned int ts = (long long unsigned int) TimerGetMillis();
-                LogRawDebug(LOG_SOURCE_IBUS, "[%llu] DEBUG: IBus: RX[%d]: ", ts, msgLength);
                 for(idx = 0; idx < msgLength; idx++) {
                     pkt[idx] = ibus->rxBuffer[idx];
-                    LogRawDebug(LOG_SOURCE_IBUS, "%02X ", pkt[idx]);
                 }
+                const char *suffix = 0;
                 if (memcmp(ibus->txBuffer[ibus->txBufferReadbackIdx], pkt, msgLength) == 0) {
-                    LogRawDebug(LOG_SOURCE_IBUS, "[SELF]");
+                    suffix = "[SELF]";
                     memset(ibus->txBuffer[ibus->txBufferReadbackIdx], 0, IBUS_MAX_MSG_LENGTH);
                     if (ibus->txBufferReadbackIdx + 1 == IBUS_TX_BUFFER_SIZE) {
                         ibus->txBufferReadbackIdx = 0;
@@ -1041,7 +1035,7 @@ void IBusProcess(IBus_t *ibus)
                     }
                     ibus->txRetries = 0;
                 }
-                LogRawDebug(LOG_SOURCE_IBUS, "\r\n");
+                LogDebugByteArray(LOG_SOURCE_IBUS, pkt, msgLength, suffix, "DEBUG: IBus: RX[%d]", msgLength);
                 if (IBusValidateChecksum(pkt) == 1) {
                     uint8_t srcSystem = pkt[IBUS_PKT_SRC];
                     if (srcSystem == IBUS_DEVICE_BLUEBUS &&
@@ -1179,18 +1173,14 @@ void IBusProcess(IBus_t *ibus)
             (now - ibus->rxLastStamp) > IBUS_RX_BUFFER_TIMEOUT ||
             (ibus->rxBufferIdx + 1) == IBUS_RX_BUFFER_SIZE
         ) {
-            long long unsigned int ts = (long long unsigned int) TimerGetMillis();
-            LogRawDebug(
+            LogDebugByteArray(
                 LOG_SOURCE_IBUS,
-                "[%llu] ERROR: IBus: RX Buffer Timeout [%d]: ",
-                ts,
+                ibus->rxBuffer,
+                ibus->rxBufferIdx,
+                NULL,
+                "ERROR: IBus: RX Buffer Timeout [%d]",
                 ibus->rxBufferIdx
             );
-            uint8_t idx;
-            for (idx = 0; idx < ibus->rxBufferIdx; idx++) {
-                LogRawDebug(LOG_SOURCE_IBUS, "%02X ", ibus->rxBuffer[idx]);
-            }
-            LogRawDebug(LOG_SOURCE_IBUS, "\r\n");
             LogRaw("IBus: ERR_TMO[%d]\r\n", ibus->rxBufferIdx);
             ibus->rxBufferIdx = 0;
             memset(ibus->rxBuffer, 0, IBUS_RX_BUFFER_SIZE);
