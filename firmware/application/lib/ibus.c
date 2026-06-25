@@ -1529,7 +1529,7 @@ uint8_t IBusGetLMVariant(uint8_t *packet)
         LogInfo(LOG_SOURCE_IBUS, "Light Module: LSZ_2");
     } else if (diagnosticIndex == 0x40) {
         lmVariant = IBUS_LM_LM2_83;
-        LogInfo(LOG_SOURCE_IBUS, "Light Module: LM_83");
+        LogInfo(LOG_SOURCE_IBUS, "Light Module: LM2_83");
     }
 
     return lmVariant;
