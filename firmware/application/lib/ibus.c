@@ -1524,9 +1524,12 @@ uint8_t IBusGetLMVariant(uint8_t *packet)
     } else if (diagnosticIndex >= 0x20 && diagnosticIndex <= 0x2f) {
         lmVariant = IBUS_LM_LSZ;
         LogInfo(LOG_SOURCE_IBUS, "Light Module: LSZ");
-    } else if (diagnosticIndex >= 0x30 && diagnosticIndex <= 0x40) {
+    } else if (diagnosticIndex >= 0x30 && diagnosticIndex <= 0x3f) {
         lmVariant = IBUS_LM_LSZ_2;
         LogInfo(LOG_SOURCE_IBUS, "Light Module: LSZ_2");
+    } else if (diagnosticIndex == 0x40) {
+        lmVariant = IBUS_LM_LM2_83;
+        LogInfo(LOG_SOURCE_IBUS, "Light Module: LM_83");
     }
 
     return lmVariant;

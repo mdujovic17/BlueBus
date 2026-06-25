@@ -381,6 +381,7 @@
 #define IBUS_LM_LCM_IV 6
 #define IBUS_LM_LSZ 7
 #define IBUS_LM_LSZ_2 8
+#define IBUS_LM_LM2_83 9
 
 #define IBUS_MID_SYMBOL_NEXT 0xC9
 #define IBUS_MID_SYMBOL_BACK 0xCA
